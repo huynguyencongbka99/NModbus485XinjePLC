@@ -13,6 +13,144 @@ public decimal CalculateTax(decimal amount, decimal rate)
 ```
 
 # Working with Lists
+## 1. Khái niệm cơ bản
+- List<T> là một collection động thuộc namespace:
+
+- using System.Collections.Generic;
+
+
+Đặc điểm chính:
+Lưu tập hợp các phần tử cùng kiểu dữ liệu.
+Kích thước thay đổi động (không cố định như mảng). 
+Truy cập nhanh bằng index
+
+Có sẵn rất nhiều phương thức tiện lợi
+```csharp
+// Có thể duyệt qua list bằng phương thức dưới đây
+foreach (var item in models)
+{
+    Console.WriteLine(item);
+}
+```
+4. Ứng dụng thực tế trong Automation / WinForms
+4.1 Lưu danh sách Recipe (rất phổ biến)
+class Recipe
+{
+    public string Name { get; set; }
+    public int Speed { get; set; }
+    public int Position { get; set; }
+}
+
+```csharp
+List<Recipe> recipes = new List<Recipe>();
+
+
+Ứng dụng:
+
+Lưu nhiều recipe máy
+
+Hiển thị lên ComboBox
+
+Load / Save từ file
+
+comboBox1.DataSource = recipes;
+comboBox1.DisplayMember = "Name";
+
+4.2 Lưu dữ liệu đọc từ PLC (buffer dữ liệu)
+List<int> plcData = new List<int>();
+
+plcData.Add(readValue);
+
+
+Dùng trong:
+
+Buffer dữ liệu
+
+Lọc dữ liệu trước khi hiển thị
+
+Ghi log
+
+4.3 Lưu log chạy máy (thay vì ghi từng dòng)
+List<string> logs = new List<string>();
+
+logs.Add($"{DateTime.Now}: Start cycle");
+logs.Add($"{DateTime.Now}: Stop cycle");
+
+
+Sau đó ghi file một lần:
+
+File.WriteAllLines("log.txt", logs);
+
+
+➡ Giảm I/O, tăng độ ổn định.
+
+4.4 Danh sách lỗi / Alarm
+List<string> alarms = new List<string>();
+
+if (isOverload)
+    alarms.Add("Servo overload");
+
+
+Kết hợp:
+
+Hiển thị lên ListBox
+
+Gửi cảnh báo HMI
+
+Ghi lịch sử lỗi
+
+5. List<T> kết hợp LINQ (rất mạnh)
+Lọc dữ liệu
+var highSpeedRecipes = recipes
+    .Where(r => r.Speed > 1000)
+    .ToList();
+
+Tìm phần tử
+var recipe = recipes.FirstOrDefault(r => r.Name == "Model_A");
+
+Kiểm tra tồn tại
+bool exists = recipes.Any(r => r.Name == "Model_B");
+
+6. Những lưu ý quan trọng khi dùng List<T>
+6.1 Thread-safe
+
+List<T> không thread-safe
+
+Sai trong WinForms đa luồng:
+
+logs.Add("Data"); // nguy hiểm nếu chạy từ Task
+
+
+Đúng:
+
+lock (_lockObj)
+{
+    logs.Add("Data");
+}
+
+
+Hoặc dùng:
+
+ConcurrentBag<T>
+
+6.2 Không nên sửa List khi đang foreach
+foreach (var item in list)
+{
+    list.Remove(item); // lỗi
+}
+
+
+Cách đúng:
+
+list.RemoveAll(x => x == value);
+
+7. Khi nào KHÔNG nên dùng List<T>
+
+Dữ liệu cố định số lượng → Array
+
+Truy cập theo key → Dictionary
+
+FIFO / LIFO → Queue / Stack
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -20,6 +158,9 @@ using System.Collections.Generic;
 List<string> names = new List<string> { "Alice", "Bob", "Charlie" };
 names.ForEach(name => Console.WriteLine(name));
 ```
+```csharp
+## 2. Ứng dụng thực tế
+
 
 # Working with File Stream
 ## 1. Các lớp chính trong System.IO
@@ -51,8 +192,8 @@ class Program
             Console.WriteLine("Tệp không tồn tại.");
     }
 }
-
 ```
+
 ### b. Kiểm tra thư mục có tồn tại không?
 ```csharp
 string folderPath = @"C:\MyFolder";
